@@ -2,7 +2,11 @@ load kernel-kmeans-2rings.mat
 X = data';
 k = 2;
 Y = k_means_Kernel(X,k);
+figure(1)
 gscatter(X(1,:),X(2,:),Y)
+title('Cluster after Kernel K-means')
+xlabel('x1')
+ylabel('x2')
 %% Use the RBF kernel with σ^2 = 0.16
 function K = RBF_kernel(X)
     [d,n] = size(X);
@@ -32,7 +36,7 @@ function y = k_means_Kernel(X,k)
     e = eye(n);
     K = RBF_kernel(X);
     iteration = 0;
-
+    wcss_old = 0; wcss_new = 0;
     %initialize: cluster-mean coefficient vectors u` ∈ Rn, ` = 1, . . . , k, STOP = FALSE
     for l = 1:k
         %choose all coordinates if u1, u2 uniformly at random between 0 and 1
@@ -59,14 +63,13 @@ function y = k_means_Kernel(X,k)
         for l = 1:k
             yl = (y == l);
             nl = sum(yl);
-            if(nl ~= 0)
+            if nl ~= 0
+                sec = 0;
                 for j = 1:n
-                    val = 0;
-                    if(y(j) == l)
-                        val = val + e(:,j);
-                    end
+                    sec = sec + (e(:,j) * (y(j) == l));
                 end
-                u(:,l) = (1./nl) .* val;
+                u(:,l) = (1/nl) * sec;
+                %u(:,l) = (1/nl) * sum(e(:,yl),2);
             else
                 u(:,l) = zeros(n,1);
             end
@@ -75,7 +78,11 @@ function y = k_means_Kernel(X,k)
         if(iteration > 50)
             STOP = true;
         end
-        wcss = WCSS(e, u, K, y)
+        wccs_old = wcss_new;
+        wcss_new = WCSS(e, u, K, y);
+        if(wcss_old == wcss_new)
+            %STOP = true;
+        end
         
     end
 end
