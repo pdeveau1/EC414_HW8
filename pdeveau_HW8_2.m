@@ -72,13 +72,23 @@ xlabel('x1');
 ylabel('x2');
 legend('+1','-1')
 hold off
+%% 
+function K = K_RBF(n, X)
+    sigma = 0.5;
+    K = zeros(n);
+    for u = 1:n
+        for v = 1:n
+            K(u,v) = exp(-(1/(2*(sigma^2))) * (norm(X(:,u)-X(:,v)).^2));
+        end
+    end
+end
 
 %% function to find stochastic sub-gradient descent for binary Kernel SVM
 function psi_t = SSGD(X,Y,tmax)
     nC = 256;
     [d,n] = size(X);
     psi = zeros(n+1,1);
-    K = X' * X; %(n x n)
+    K = K_RBF(n,X); %(n x n)
     psi_t = [psi];
     range = 1 : n;
     for t = 1:tmax
@@ -86,7 +96,7 @@ function psi_t = SSGD(X,Y,tmax)
         j = randsample(range, 1);
         y_j = Y(j);
         x_j = X(:,j);
-        K_j = X' * x_j;
+        K_j = K(:,j);
         Kj_ext = [K_j; 1];%(n + 1) x 1
 
         s_t = 0.256 / t;
@@ -110,7 +120,7 @@ function g = cost(X, Y, psi)
     [d n] = size(X);
     nC = 256;
     C = nC/n;
-    K = X' * X; %(n x n)
+    K = K_RBF(n,X); %(n x n)
     K_ext = [K; ones(1,n)];
 
     f0 = (1/2) * psi' * conv2(K,[1,0;0 0]) * psi;
