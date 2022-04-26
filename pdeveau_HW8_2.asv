@@ -37,23 +37,19 @@ xpos = x(:,y == 1);
 xneg = x(:,y == -1);
 xpos_pred = x(:,y_pred == 1);
 xneg_pred = x(:,y_pred == -1);
-boundary = [];
-for i = 1:n-1
-    if(y_pred(i) ~= y_pred(i+1))
-        boundary = [boundary x(:,i) x(:,i)];
-    end
+for i = i:n
+    if(y())
 end
 figure(3)
 hold on
 scatter(xpos(1,:),xpos(2,:),'b+')
 scatter(xneg(1,:),xneg(2,:),'r_')
-scatter(boundary(1,:),boundary(2,:),'filled','go')
 %plot(boundary)
-title('Training set and decision boundary')
 xlabel('x1');
 ylabel('x2');
-legend('+1','-1','boundary')
+legend('+1','-1')
 hold off
+
 
 
 %% 

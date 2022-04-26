@@ -1,8 +1,6 @@
 load kernel-kmeans-2rings.mat
 X = data';
 k = 2;
-Y = k_means_Kernel(X,k);
-gscatter(X(1,:),X(2,:),Y)
 %% Use the RBF kernel with σ^2 = 0.16
 function K = RBF_kernel(X)
     [d,n] = size(X);
@@ -21,7 +19,7 @@ function wcss = WCSS(e, alpha, K, y)
     [~,n] = size(K);
     wcss = 0;
     for j = 1:n
-        wcss = wcss + (e(:,j)-alpha(:,y(j)))' * K * (e(:,j)-alpha(:,y(j)));
+        wcss = wcss + (e(:,j)-alpha(y(j)))' * K * (e(:,j)-alpha(y(j)));
     end
 end
 %% 
@@ -30,21 +28,19 @@ function y = k_means_Kernel(X,k)
     y = ones(1,n);
     u = zeros(n,k);
     e = eye(n);
-    K = RBF_kernel(X);
-    iteration = 0;
-
+    
     %initialize: cluster-mean coefficient vectors u` ∈ Rn, ` = 1, . . . , k, STOP = FALSE
     for l = 1:k
         %choose all coordinates if u1, u2 uniformly at random between 0 and 1
         ul = rand(n,1);
         %scale them so that they have uniy 1-norm
-        u(:,l) = ul/norm(ul);
+        ul = norm(ul,1);
+        u(:,l) = ul;
     end
     STOP = false;
 
     %repeat
     while(~STOP)
-        iteration = iteration + 1;
         %update labels:
         for j = 1:n
             check1 = (e(:,j) - u(:,1))' * K * (e(:,j) - u(:,1));
@@ -55,28 +51,6 @@ function y = k_means_Kernel(X,k)
                 y(j) = 2;
             end
         end
-        %update cluster-mean coefficient vectors:
-        for l = 1:k
-            yl = (y == l);
-            nl = sum(yl);
-            if(nl ~= 0)
-                for j = 1:n
-                    val = 0;
-                    if(y(j) == l)
-                        val = val + e(:,j);
-                    end
-                end
-                u(:,l) = (1./nl) .* val;
-            else
-                u(:,l) = zeros(n,1);
-            end
-        end
-        %check stop
-        if(iteration > 50)
-            STOP = true;
-        end
-        wcss = WCSS(e, u, K, y)
-        
     end
 end
 
